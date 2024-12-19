@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+   <html lang="ru">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>Главная страница</title>
+       <link rel="stylesheet" href="lobby.css">
+   </head>
+   <body>
+       <div class="reg"> 
+            <button type="button" onclick="register()">Авторизация/Регистрация</button>
+            <script>
+                function register() {
+                    window.location.href = "admin.html";
+                }
+            </script>
+       </div>
+       <div class="spisok">
+            <p>Inventariki</p>
+       </div>
+       <div class="zayavka">
+        <button type="button" onclick="sp_zayavok()">Создание заявки</button>
+        <script>
+            function sp_zayavok() {
+                window.location.href = "zayavka.html";
+            }
+        </script>
+       </div>
+       <div class="sost_zayavka">
+        <button type="button" onclick="sostoyanie()">Состояние заявок</button>
+        <script>
+            function sostoyanie() {
+                window.location.href = "sost_zayavka.html";
+            }
+        </script>
+       </div>
+   </body>
+   </html>
