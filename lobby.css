@@ -1,0 +1,58 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #bde4f7;
+}
+
+.reg {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.spisok {
+    background-color: #52a0fa;
+    display: flex;
+    margin-left: 60px;
+    margin-right: 60px;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; 
+    margin-top: 70px;
+    border-radius: 10px;
+}
+
+.spisok p {
+    font-size: 2em;
+    color: #333;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3; 
+}
+
+.zayavka, .sost_zayavka {
+    position: absolute;
+    bottom: 20px; 
+    right: 20px; 
+    margin: 10px; 
+}
+
+.zayavka {
+    margin-bottom: 60px; 
+}
