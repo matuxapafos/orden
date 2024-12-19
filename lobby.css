@@ -3,10 +3,13 @@
     margin: 0;
     padding: 0;
 }
+.all{
+    text-align: center;
+}
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #bde4f7;
+    background-color: #f0f0f0;
 }
 
 .reg {
@@ -16,34 +19,35 @@ body {
 }
 
 .spisok {
-    background-color: #52a0fa;
+    background-color: rgb(255, 255, 255);
     display: flex;
     margin-left: 60px;
     margin-right: 60px;
-    justify-content: center;
-    align-items: center;
+    justify-content: left;
+    align-items: left;
     flex-direction: column; 
     margin-top: 70px;
     border-radius: 10px;
 }
 
-.spisok p {
+p {
     font-size: 2em;
-    color: #333;
+    color:  #d099d6;
 }
 
 button {
-    background-color: #007bff;
+    background-color:  #bc75c4;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 10px 20px;
     cursor: pointer;
     transition: background-color 0.3s;
+    width: 160px;
 }
 
 button:hover {
-    background-color: #0056b3; 
+    background-color: #560161; 
 }
 
 .zayavka, .sost_zayavka {
@@ -55,4 +59,27 @@ button:hover {
 
 .zayavka {
     margin-bottom: 60px; 
+}
+.card{
+    background-color: #d099d6;
+    display: flex;
+    justify-content: left;
+    width: 100%;
+    color: white;
+    border-radius: 20px;
+    text-align: center;
+
+}
+.name_item{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    text-align: center;
+}
+.pp{
+    color:#d099d6;
 }

@@ -7,16 +7,23 @@
        <link rel="stylesheet" href="lobby.css">
    </head>
    <body>
-       <div class="reg"> 
-            <button type="button" onclick="register()">Авторизация/Регистрация</button>
-            <script>
-                function register() {
-                    window.location.href = "admin.html";
-                }
-            </script>
-       </div>
-       <div class="spisok">
-            <p>Inventariki</p>
+       <div class="all">
+        <p>Инвентарь</p>
+        <div class="spisok">
+            <div class="card">
+                <div class="name_item">
+                    <div class="name">Название</div>
+                    <div class="item">баскетбольный мяч</div>
+                </div>
+                <div class="name_item">
+                    <div class="status">Состояние товара</div>
+                    <div class="item2">Отличное</div>
+                </div>
+                <div class="name_item">
+                    <div class="count">Количество</div>
+                    <div class="item">5</div>
+                </div>
+            </div>
        </div>
        <div class="zayavka">
         <button type="button" onclick="sp_zayavok()">Создание заявки</button>
@@ -34,5 +41,7 @@
             }
         </script>
        </div>
+       </div>
+       
    </body>
    </html>
