@@ -3,11 +3,20 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy import String, Boolean, Integer, DateTime
 from sqlalchemy import ForeignKey
+from sqlalchemy import Table
 from datetime import datetime
 
 
 class Base(DeclarativeBase):
     pass
+
+
+association_table = Table(
+    "user_items",
+    Base.metadata,
+    mapped_column("user_id", ForeignKey("users.id"), primary_key=True),
+    mapped_column("item_id", ForeignKey("items.id"), primary_key=True),
+)
 
 
 class User(Base):
@@ -31,7 +40,7 @@ class Item(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     count: Mapped[int] = mapped_column(Integer(), nullable=False)
     price: Mapped[int] = mapped_column(Integer(), nullable=False)
-    items: Mapped["User"] = relationship("User", secondary="user_items")
+    users: Mapped["User"] = relationship("User", secondary="user_items")
 
 
 class BuyOrder(Base):
@@ -52,11 +61,3 @@ class ClaimOrder(Base):
     user_id: Mapped[int] = mapped_column(Integer(), ForeignKey("users.id"))
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
-
-
-class UserItem(Base):
-    __tablename__ = "user_items"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer(), ForeignKey("users.id"))
-    item_id: Mapped[int] = mapped_column(Integer(), ForeignKey("items.id"))
