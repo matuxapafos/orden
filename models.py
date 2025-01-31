@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy import String, Boolean, Integer, DateTime
 from sqlalchemy import ForeignKey
-from sqlalchemy import Table
+from sqlalchemy import Table, Column
 from datetime import datetime
 
 
@@ -14,8 +14,8 @@ class Base(DeclarativeBase):
 association_table = Table(
     "user_items",
     Base.metadata,
-    mapped_column("user_id", ForeignKey("users.id"), primary_key=True),
-    mapped_column("item_id", ForeignKey("items.id"), primary_key=True),
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("item_id", ForeignKey("items.id"), primary_key=True),
 )
 
 
@@ -27,7 +27,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String(30), nullable=False)
     surname: Mapped[str] = mapped_column(String(30), nullable=False)
-    password: Mapped[str] = mapped_column(String(50), nullable=False)
+    password: Mapped[str] = mapped_column(String(200), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean(), nullable=False)
     items: Mapped["Item"] = relationship("Item", secondary="user_items")
 
