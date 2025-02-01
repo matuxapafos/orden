@@ -1,4 +1,4 @@
-from flask import Flask, flash, redirect, render_template, request, url_for, jsonify
+from flask import Flask, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, select
 from sqlalchemy_utils import database_exists, create_database
@@ -16,11 +16,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
+
+DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 app = Flask(__name__)
@@ -29,14 +26,7 @@ app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 jwt = JWTManager(app)
 
 
-def create_db_and_tables() -> None:
-    if not database_exists(engine.url):
-        create_database(engine.url)
-    Base.metadata.create_all(engine)
-
-
-DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-engine = create_engine(DB_URL, echo=True)
+engine = create_engine(DB_CONNECTION_STRING, echo=True)
 Session = sessionmaker(engine)
 
 
@@ -187,6 +177,12 @@ def current_user():
 # @jwt_required()
 # def get_all_users():
 # return GetAllUsers()
+
+
+def create_db_and_tables() -> None:
+    if not database_exists(engine.url):
+        create_database(engine.url)
+    Base.metadata.create_all(engine)
 
 
 if __name__ == "__main__":
