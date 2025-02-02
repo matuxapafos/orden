@@ -1,10 +1,9 @@
 from flask import Blueprint, redirect, render_template, url_for
-from sqlalchemy import select
-from sqlalchemy.orm import Session
 from models import User
 from flask_jwt_extended import (
     get_jwt_identity,
 )
+from database import db
 
 views_bp = Blueprint("views", __name__)
 
@@ -27,9 +26,8 @@ def register():
 @views_bp.route("/dashboard")
 def dashboard():
     current_username = get_jwt_identity()
-    with Session() as session:
-        statement = select(User).where(User.username == current_username)
-        user = session.execute(statement).scalar_one_or_none()
+    statement = db.select(User).where(User.username == current_username)
+    user = db.session.execute(statement).scalar_one_or_none()
     if user.is_admin:
         return render_template("admin.html")
     return render_template("user.html")

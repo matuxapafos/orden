@@ -1,19 +1,17 @@
 from flask import Flask
-from sqlalchemy import create_engine
-from sqlalchemy_utils import database_exists, create_database
-from sqlalchemy.orm import sessionmaker
-from models import Base
 from flask_jwt_extended import JWTManager
 import os
 from dotenv import load_dotenv
 from routes import views_bp, api_bp
+from database import db
+
 
 load_dotenv()
 
-
-DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 DEBUG = os.getenv("DEBUG")
+DB_CONNECTION_STRING = os.getenv("DB_CONNECTION_STRING")
+
 
 app = Flask(__name__)
 
@@ -23,18 +21,11 @@ app.register_blueprint(api_bp, url_prefix="/api")
 app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 jwt = JWTManager(app)
 
-
-engine = create_engine(DB_CONNECTION_STRING, echo=True)
-
-Session = sessionmaker(engine)
-
-
-def create_db_and_tables() -> None:
-    if not database_exists(engine.url):
-        create_database(engine.url)
-    Base.metadata.create_all(engine)
+app.config["SQLALCHEMY_DATABASE_URI"] = DB_CONNECTION_STRING
+db.init_app(app)
 
 
 if __name__ == "__main__":
-    create_db_and_tables()
+    with app.app_context():
+        db.create_all()
     app.run(host="0.0.0.0", port=5000, debug=DEBUG)

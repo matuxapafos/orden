@@ -1,13 +1,12 @@
 from flask import request, jsonify, Blueprint
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from models import User
+from models import User, ClaimOrder, Item
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import (
     jwt_required,
     create_access_token,
     get_jwt_identity,
 )
+from database import db
 
 
 api_bp = Blueprint("api", __name__)
@@ -16,11 +15,8 @@ api_bp = Blueprint("api", __name__)
 @api_bp.route("/auth/sign-in", methods=["POST"])
 def sign_in():
     data = request.json
-    with Session() as session:
-        statement = select(User).where(User.username == data["username"])
-        user = session.execute(statement).scalar_one_or_none()
-    if user is None:
-        return jsonify({"message": "User does not exists"}), 401
+    user = db.one_or_404(db.select(User).filter_by(username=data["username"]))
+    print(type(user))
     if check_password_hash(user.password, data["password"]):
         access_token = create_access_token(identity=user.username)
         return jsonify(access_token=access_token), 200
@@ -38,14 +34,13 @@ def sign_up():
         password=generate_password_hash(data["password"]),
         is_admin=False,
     )
-    with Session() as session:
-        try:
-            session.add(new_user)
-        except:
-            session.rollback()
-            raise
-        else:
-            session.commit()
+    try:
+        db.session.add(new_user)
+    except:
+        db.session.rollback()
+        raise
+    else:
+        db.session.commit()
     return jsonify({"message": "User  created successfully"}), 201
 
 
@@ -62,10 +57,31 @@ def current_user():
 # return UpdateUser()
 
 
-# @api_bp.route("/user/requests", methods=["GET"])
-# @jwt_required()
-# def get_user_requests():
-# return GetUserRequests()
+@api_bp.route("/user/orders", methods=["GET"])
+@jwt_required()
+def get_user_requests():
+    current_username = get_jwt_identity()
+
+    current_user = db.session.execute(
+        db.select(User).where(User.username == current_username)
+    ).scalar_one_or_none()
+    if current_user is None:
+        return jsonify({"error": "No user with such username"}), 404
+    statement = db.select(ClaimOrder).where(ClaimOrder.user_id == current_user.id)
+    claim_orders = db.session.execute(statement).scalars().all()
+
+    return jsonify(
+        [
+            {
+                "id": order.id,
+                "item_id": order.item_id,
+                "user_id": order.user_id,
+                "status": order.status,
+                "created_at": order.created_at,
+            }
+            for order in claim_orders
+        ]
+    )
 
 
 # @api_bp.route("/user/requests", methods=["POST"])
@@ -86,14 +102,40 @@ def current_user():
 # return GetRepairRequest(id)
 
 
-# @api_bp.route("/inventory", methods=["GET"])
-# def get_inventories():
-# return GetInventories()
+@api_bp.route("/items", methods=["GET"])
+@jwt_required()
+def get_inventories():
+    statement = db.select(Item)
+    items = db.session.execute(statement).scalars().all()
+    return jsonify(
+        [
+            {
+                "id": item.id,
+                "state": item.state,
+                "name": item.name,
+                "count": item.count,
+                "price": item.count,
+            }
+            for item in items
+        ]
+    )
 
 
-# @api_bp.route("/inventory/<id>", methods=["GET"])
-# def read_inventory(id):
-# return ReadInventory(id)
+@api_bp.route("/items/<id>", methods=["GET"])
+def read_inventory(id):
+    statement = db.select(Item).where(Item.id == id)
+    item = db.session.execute(statement).scalar_one_or_none()
+    if item is None:
+        return jsonify({"error": "Item not found"}), 404
+    return jsonify(
+        {
+            "id": item.id,
+            "state": item.state,
+            "name": item.name,
+            "count": item.count,
+            "price": item.count,
+        }
+    )
 
 
 # @api_bp.route("/admin/inventory", methods=["POST"])
@@ -156,7 +198,20 @@ def current_user():
 # return AssignUser()
 
 
-# @api_bp.route("/admin/user", methods=["GET"])
-# @jwt_required()
-# def get_all_users():
-# return GetAllUsers()
+@api_bp.route("/admin/user", methods=["GET"])
+@jwt_required()
+def get_all_users():
+    statement = db.select(User)
+    users = db.session.execute(statement).scalars().all()
+    return jsonify(
+        [
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "name": user.name,
+                "surname": user.surname,
+            }
+            for user in users
+        ]
+    )

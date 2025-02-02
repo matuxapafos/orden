@@ -1,25 +1,17 @@
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column, relationship
-from sqlalchemy import String, Boolean, Integer, DateTime
-from sqlalchemy import ForeignKey
-from sqlalchemy import Table, Column
+from sqlalchemy.orm import mapped_column, relationship, Mapped
+from sqlalchemy import String, Boolean, Integer, DateTime, Text, ForeignKey, Column
 from datetime import datetime
+from database import db
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-association_table = Table(
+association_table = db.Table(
     "user_items",
-    Base.metadata,
     Column("user_id", ForeignKey("users.id"), primary_key=True),
     Column("item_id", ForeignKey("items.id"), primary_key=True),
 )
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -27,12 +19,25 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String(30), nullable=False)
     surname: Mapped[str] = mapped_column(String(30), nullable=False)
-    password: Mapped[str] = mapped_column(String(200), nullable=False)
+    password: Mapped[str] = mapped_column(Text(), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-    items: Mapped["Item"] = relationship("Item", secondary="user_items")
+    items: Mapped["Item"] = relationship(
+        "Item", secondary="user_items", back_populates="users"
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "name": self.name,
+            "surname": self.surname,
+            "is_admin": self.is_admin,
+            "items": self.items,
+        }
 
 
-class Item(Base):
+class Item(db.Model):
     __tablename__ = "items"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -40,10 +45,22 @@ class Item(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     count: Mapped[int] = mapped_column(Integer(), nullable=False)
     price: Mapped[int] = mapped_column(Integer(), nullable=False)
-    users: Mapped["User"] = relationship("User", secondary="user_items")
+    users: Mapped["User"] = relationship(
+        "User", secondary="user_items", back_populates="items"
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "state": self.state,
+            "name": self.name,
+            "count": self.count,
+            "price": self.price,
+            "users": self.users,
+        }
 
 
-class BuyOrder(Base):
+class BuyOrder(db.Model):
     __tablename__ = "buy_orders"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -52,8 +69,17 @@ class BuyOrder(Base):
     price: Mapped[int] = mapped_column(Integer(), nullable=False)
     provider_name: Mapped[str] = mapped_column(String(50), nullable=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "count": self.count,
+            "price": self.price,
+            "provider_name": self.provider_name,
+        }
 
-class ClaimOrder(Base):
+
+class ClaimOrder(db.Model):
     __tablename__ = "claim_orders"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -61,3 +87,12 @@ class ClaimOrder(Base):
     user_id: Mapped[int] = mapped_column(Integer(), ForeignKey("users.id"))
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "item_id": self.item_id,
+            "user_id": self.user_id,
+            "status": self.status,
+            "created_at": self.created_at,
+        }
