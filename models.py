@@ -2,6 +2,7 @@ from sqlalchemy.orm import mapped_column, relationship, Mapped
 from sqlalchemy import String, Boolean, Integer, DateTime, Text, ForeignKey, Column
 from datetime import datetime
 from database import db
+from typing import List
 
 
 association_table = db.Table(
@@ -17,11 +18,11 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    name: Mapped[str] = mapped_column(String(30), nullable=False)
-    surname: Mapped[str] = mapped_column(String(30), nullable=False)
+    name: Mapped[str] = mapped_column(String(30), nullable=True)
+    surname: Mapped[str] = mapped_column(String(30), nullable=True)
     password: Mapped[str] = mapped_column(Text(), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-    items: Mapped["Item"] = relationship(
+    items: Mapped[List["Item"]] = relationship(
         "Item", secondary="user_items", back_populates="users"
     )
 
@@ -33,7 +34,7 @@ class User(db.Model):
             "name": self.name,
             "surname": self.surname,
             "is_admin": self.is_admin,
-            "items": self.items,
+            # "items": self.items,
         }
 
 
@@ -45,7 +46,7 @@ class Item(db.Model):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     count: Mapped[int] = mapped_column(Integer(), nullable=False)
     price: Mapped[int] = mapped_column(Integer(), nullable=False)
-    users: Mapped["User"] = relationship(
+    users: Mapped[List["User"]] = relationship(
         "User", secondary="user_items", back_populates="items"
     )
 
@@ -56,7 +57,7 @@ class Item(db.Model):
             "name": self.name,
             "count": self.count,
             "price": self.price,
-            "users": self.users,
+            # "users": self.users,
         }
 
 
