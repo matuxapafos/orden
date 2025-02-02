@@ -15,32 +15,35 @@ api_bp = Blueprint("api", __name__)
 @api_bp.route("/auth/sign-in", methods=["POST"])
 def sign_in():
     data = request.json
-    user = db.one_or_404(db.select(User).filter_by(username=data["username"]))
-    print(type(user))
+
+    user = db.one_or_404(
+        db.select(User).filter_by(username=data["username"]),
+        description=f'User with username {data['username']} not found',
+    )
+
     if check_password_hash(user.password, data["password"]):
         access_token = create_access_token(identity=user.username)
         return jsonify(access_token=access_token), 200
+
     return jsonify({"message": "Invalid credentials"}), 401
 
 
 @api_bp.route("/auth/sign-up", methods=["POST"])
 def sign_up():
     data = request.json
+
     new_user = User(
         username=data["username"],
-        email="",
-        name="",
-        surname="",
+        email=data.get("email", ""),
+        name=data.get("name", ""),
+        surname=data.get("surname", ""),
         password=generate_password_hash(data["password"]),
         is_admin=False,
     )
-    try:
-        db.session.add(new_user)
-    except:
-        db.session.rollback()
-        raise
-    else:
-        db.session.commit()
+
+    db.session.add(new_user)
+    db.session.commit()
+
     return jsonify({"message": "User  created successfully"}), 201
 
 
@@ -48,7 +51,13 @@ def sign_up():
 @jwt_required()
 def current_user():
     current_username = get_jwt_identity()
-    return jsonify({"username": current_username}), 200
+
+    user = db.one_or_404(
+        db.select(User).filter_by(username=current_username),
+        description=f"User with username {current_username} not found",
+    )
+
+    return jsonify(user.to_dict()), 200
 
 
 # @api_bp.route("/user", methods=["PUT"])
@@ -59,29 +68,21 @@ def current_user():
 
 @api_bp.route("/user/orders", methods=["GET"])
 @jwt_required()
-def get_user_requests():
+def get_user_orders():
     current_username = get_jwt_identity()
 
-    current_user = db.session.execute(
-        db.select(User).where(User.username == current_username)
-    ).scalar_one_or_none()
-    if current_user is None:
-        return jsonify({"error": "No user with such username"}), 404
-    statement = db.select(ClaimOrder).where(ClaimOrder.user_id == current_user.id)
-    claim_orders = db.session.execute(statement).scalars().all()
-
-    return jsonify(
-        [
-            {
-                "id": order.id,
-                "item_id": order.item_id,
-                "user_id": order.user_id,
-                "status": order.status,
-                "created_at": order.created_at,
-            }
-            for order in claim_orders
-        ]
+    current_user = db.one_or_404(
+        db.select(User).filter_by(username=current_username),
+        description=f"User with username {current_username} not found",
     )
+
+    claim_orders = (
+        db.session.execute(db.select(ClaimOrder).filter_by(user_id=current_user.id))
+        .scalars()
+        .all()
+    )
+
+    return jsonify([order.to_dict() for order in claim_orders]), 200
 
 
 # @api_bp.route("/user/requests", methods=["POST"])
@@ -104,38 +105,42 @@ def get_user_requests():
 
 @api_bp.route("/items", methods=["GET"])
 @jwt_required()
-def get_inventories():
-    statement = db.select(Item)
-    items = db.session.execute(statement).scalars().all()
-    return jsonify(
-        [
-            {
-                "id": item.id,
-                "state": item.state,
-                "name": item.name,
-                "count": item.count,
-                "price": item.count,
-            }
-            for item in items
-        ]
+def get_items():
+    current_username = get_jwt_identity()
+
+    user = db.one_or_404(
+        db.select(User).filter_by(username=current_username),
+        description=f"User with username {current_username} not found",
     )
+
+    if user.is_admin:
+        items = db.session.execute(db.select(Item)).scalars().all()
+        return jsonify([item.to_dict() for item in items]), 200
+
+    if user.items is None:
+        return jsonify([]), 200
+
+    return jsonify([item.to_dict() for item in user.items]), 200
 
 
 @api_bp.route("/items/<id>", methods=["GET"])
+@jwt_required()
 def read_inventory(id):
-    statement = db.select(Item).where(Item.id == id)
-    item = db.session.execute(statement).scalar_one_or_none()
-    if item is None:
-        return jsonify({"error": "Item not found"}), 404
-    return jsonify(
-        {
-            "id": item.id,
-            "state": item.state,
-            "name": item.name,
-            "count": item.count,
-            "price": item.count,
-        }
+    current_username = get_jwt_identity()
+
+    user = db.one_or_404(
+        db.select(User).filter_by(username=current_username),
+        description=f"User with username {current_username} not found",
     )
+
+    item = db.one_or_404(
+        db.select(Item).filter_by(id=id), description=f"Item with id {id} not found"
+    )
+
+    if user.is_admin or any(user.username == current_username for user in item.users):
+        return jsonify(item.to_dict()), 200
+
+    return jsonify({}), 403
 
 
 # @api_bp.route("/admin/inventory", methods=["POST"])
