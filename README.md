@@ -22,3 +22,5 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+### [Ссылка на видео с работой приложения](https://rutube.ru/video/6543d72e116c885f97a8f7fdd5d04bdf/)
